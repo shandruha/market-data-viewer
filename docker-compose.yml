@@ -1,0 +1,55 @@
+version: '3.8'
+
+# usage:
+# docker-compose up -d
+
+services:
+  db:
+    image: postgres:14
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: market_data
+      POSTGRES_USER: md_admin
+      POSTGRES_PASSWORD: md_password
+    networks:
+      - service-network
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/pgsql:/var/lib/postgresql/data
+  app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+      args:
+        - NODE_ENV=local
+    ports:
+      - 8050:80
+    depends_on:
+      - "db"
+    links:
+      - db:db
+    networks:
+      - service-network
+    environment:
+      - DATABASE_URL=db
+  data-generator:
+    build:
+      context: .
+      dockerfile: data_generator/Dockerfile
+      args:
+        - NODE_ENV=local
+    depends_on:
+      - "db"
+    links:
+      - db:db
+    networks:
+      - service-network
+    environment:
+      - DATABASE_URL=db
+networks:
+    service-network:
+        driver: bridge
+
+
