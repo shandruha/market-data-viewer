@@ -2,10 +2,13 @@ import os
 import psycopg2
 
 
-def get_connection(user, password):
+def get_connection():
+    with open(os.getenv('POSTGRES_PASSWORD_FILE'), 'r') as file:
+        db_password = file.read()
+
     return psycopg2.connect(
-        dbname='market_data',
-        user=user,
-        password=password,
-        host=os.getenv("DATABASE_URL", "localhost")
+        dbname=os.getenv('POSTGRES_DB'),
+        user=os.getenv('POSTGRES_USER'),
+        password=db_password,
+        host=os.getenv('DATABASE_URL', 'localhost')
     )

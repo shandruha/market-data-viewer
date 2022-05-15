@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from flask import Flask
 import dash
@@ -11,7 +12,7 @@ from utils.db import get_connection
 
 
 def get_tickers():
-    with get_connection('app', 'app') as conn:
+    with get_connection() as conn:
         cursor = conn.cursor()
         tickers = []
 
@@ -24,7 +25,7 @@ def get_tickers():
 
 
 def get_prices(ticker_id):
-    with get_connection('app', 'app') as conn:
+    with get_connection() as conn:
         query = 'SELECT date_time, price FROM price_history WHERE ticker_id = %s ORDER BY date_time'
         df = pd.read_sql(query, con=conn, params=(ticker_id,))
         return df

@@ -10,17 +10,8 @@ def generate_movement():
 
 
 if __name__ == '__main__':
-    sleep(5.0)
-
-    with get_connection('data_generator', 'data_generator') as conn:
+    with get_connection() as conn:
         cursor = conn.cursor()
-
-        for i in range(100):
-            cursor.execute(
-                'INSERT INTO tickers VALUES (%s, %s) ON CONFLICT(id) DO NOTHING',
-                (i + 1, 'ticker_{:02d}'.format(i))
-            )
-        conn.commit()
 
         cursor.execute('SELECT id FROM tickers ORDER BY id')
 

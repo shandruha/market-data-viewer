@@ -11,13 +11,17 @@ services:
       - 5432:5432
     environment:
       POSTGRES_DB: market_data
-      POSTGRES_USER: md_admin
-      POSTGRES_PASSWORD: md_password
+      POSTGRES_USER: md_app
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
     networks:
       - service-network
     volumes:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./data/pgsql:/var/lib/postgresql/data
+    secrets:
+      - postgres-password
+    healthcheck:
+      test: pg_isready -U md_app -d market_data
   app:
     build:
       context: .
@@ -27,13 +31,19 @@ services:
     ports:
       - 8050:80
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
     links:
       - db:db
     networks:
       - service-network
     environment:
-      - DATABASE_URL=db
+      POSTGRES_DB: market_data
+      POSTGRES_USER: md_app
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      DATABASE_URL: db
+    secrets:
+      - postgres-password
   data-generator:
     build:
       context: .
@@ -41,15 +51,25 @@ services:
       args:
         - NODE_ENV=local
     depends_on:
-      - "db"
+      db:
+        condition: service_healthy
     links:
       - db:db
     networks:
       - service-network
     environment:
-      - DATABASE_URL=db
+      POSTGRES_DB: market_data
+      POSTGRES_USER: md_app
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      DATABASE_URL: db
+    secrets:
+      - postgres-password
 networks:
     service-network:
         driver: bridge
+secrets:
+  postgres-password:
+    file: secrets/postgres-password.txt
+
 
 
